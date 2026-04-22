@@ -3,7 +3,10 @@ import axios from 'axios';
 
 // Buat instance axios dengan base URL backend kita
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api', // Sesuaikan dengan port backend Anda
+  baseURL: 'https://small-ideas-hug.loca.lt', // <-- Pakai URL dari localtunnel tadi
+  headers: {
+    'Bypass-Tunnel-Reminder': 'true' 
+  }
 });
 
 // Interceptor: Menjalankan fungsi ini SEBELUM request dikirim ke server
