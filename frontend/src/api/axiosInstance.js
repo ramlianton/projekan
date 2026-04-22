@@ -1,0 +1,40 @@
+// frontend/src/api/axiosInstance.js
+import axios from 'axios';
+
+// Buat instance axios dengan base URL backend kita
+const axiosInstance = axios.create({
+  baseURL: 'http://localhost:5000/api', // Sesuaikan dengan port backend Anda
+});
+
+// Interceptor: Menjalankan fungsi ini SEBELUM request dikirim ke server
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Ambil token dari Local Storage browser
+    const token = localStorage.getItem('token');
+    
+    // Jika token ada, sisipkan ke header Authorization
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor: Menangani response dari server (opsional, untuk auto-logout jika token expired)
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Jika status 401 (Unauthorized/Token Expired), hapus token dan tendang ke halaman login
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default axiosInstance;

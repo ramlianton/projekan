@@ -1,0 +1,126 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // URL menggunakan prisma.config.ts (Sesuai setup versi 7 Anda)
+}
+
+// --- ENUMS ---
+enum Role {
+  USER
+  LEADER
+  ADMIN
+}
+
+enum ProjectStatus {
+  PENDING
+  ON_PROGRESS
+  DONE
+  CANCEL
+}
+
+// --- MODELS (Divisi & User & Daily Report Tetap Sama) ---
+
+model Division {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  users     User[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  projects  ProjectEntry[] // Relasi baru ke ProjectEntry
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  name         String
+  password     String
+  phone        String?       
+  role         Role          @default(USER)
+  divisionId   Int?
+  division     Division?     @relation(fields: [divisionId], references: [id])
+  dailyReports DailyReport[]
+  projects     ProjectEntry[] // Relasi baru ke ProjectEntry
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model DailyReport {
+  id          Int         @id @default(autoincrement())
+  date        DateTime    @default(now()) @db.Date
+  notes       String?     @db.Text
+  isSentToWa  Boolean     @default(false)
+  userId      Int
+  user        User        @relation(fields: [userId], references: [id])
+  tasks       DailyTask[] 
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([userId, date]) 
+}
+
+model DailyTask {
+  id            Int         @id @default(autoincrement())
+  description   String
+  durationHours Float?      
+  dailyReportId Int
+  dailyReport   DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// --- NEW EAV PROJECT MANAGEMENT SYSTEM ---
+
+model ProjectTemplate {
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
+  fields      TemplateField[] // Relasi ke field/kolom dinamis
+  entries     ProjectEntry[]  // Relasi ke data proyek
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model TemplateField {
+  id         Int             @id @default(autoincrement())
+  templateId Int
+  template   ProjectTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  fieldName  String
+  fieldType  String          // Menyimpan tipe: "text", "number", "date", "select"
+  values     ProjectValue[]
+}
+
+model ProjectEntry {
+  id         Int             @id @default(autoincrement())
+  userId     Int
+  user       User            @relation(fields: [userId], references: [id])
+  templateId Int
+  template   ProjectTemplate @relation(fields: [templateId], references: [id])
+  status     ProjectStatus   @default(PENDING)
+  divisionId Int?
+  division   Division?       @relation(fields: [divisionId], references: [id])
+  values     ProjectValue[]  // Jawaban dari form dinamis
+  logs       ProjectLog[]    // Catatan tambahan / log update
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model ProjectValue {
+  id       Int           @id @default(autoincrement())
+  entryId  Int
+  entry    ProjectEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  fieldId  Int
+  field    TemplateField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  value    String        @db.Text // Semua tipe data disimpan sebagai teks, frontend yang akan melakukan konversi
+}
+
+model ProjectLog {
+  id        Int          @id @default(autoincrement())
+  entryId   Int
+  entry     ProjectEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  note      String       @db.Text
+  createdAt DateTime     @default(now())
+}
