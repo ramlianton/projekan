@@ -3,8 +3,10 @@ import axios from 'axios';
 
 // Buat instance axios dengan base URL backend kita
 const axiosInstance = axios.create({
-  baseURL: 'https://small-ideas-hug.loca.lt', // <-- Pakai URL dari localtunnel tadi
+  // WAJIB tambahkan /api di ujung URL
+  baseURL: 'https://small-ideas-hug.loca.lt/api', 
   headers: {
+    'Content-Type': 'application/json',
     'Bypass-Tunnel-Reminder': 'true' 
   }
 });
