@@ -1,5 +1,4 @@
-// frontend/src/api/axiosInstance.js
-import axios from 'axios';
+
 
 // Buat instance axios dengan base URL backend kita
 import axios from 'axios';
