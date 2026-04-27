@@ -2,12 +2,15 @@
 import axios from 'axios';
 
 // Buat instance axios dengan base URL backend kita
+import axios from 'axios';
+
 const axiosInstance = axios.create({
-  // WAJIB tambahkan /api di ujung URL
-  baseURL: 'https://small-ideas-hug.loca.lt/api', 
+  // URL Ngrok yang baru (perhatikan ujungnya ada .dev/api)
+  baseURL: 'https://prideful-uncrown-ethics.ngrok-free.dev/api', 
   headers: {
     'Content-Type': 'application/json',
-    'Bypass-Tunnel-Reminder': 'true' 
+    // Header sakti agar Ngrok tidak rewel
+    'ngrok-skip-browser-warning': 'true' 
   }
 });
 
